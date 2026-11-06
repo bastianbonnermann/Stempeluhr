@@ -1,6 +1,6 @@
 (() => {
   'use strict';
-  const API_URL = 'https://script.google.com/macros/s/AKfycbxLEq9Hb_sHf8PMEO3GKmhD3CacKwHSlhE2EzxsifCqTaq4y9r1JtpJQ4UX4jKE-B1u1g/exec';
+  const API_URL = 'https://script.google.com/macros/s/AKfycbyeiME1iPudCDcAq7mNhauYB3qW103-sVzKh5wFHsAtxHJ3pRfxBqwR_FlrV0Lo11RYsQ/exec';
   const TOKEN_KEY = 'stempeluhr_device_token_v1';
   const $ = id => document.getElementById(id);
   let base = new Date(), offset = 0, busy = false;
