@@ -28,7 +28,7 @@
       <h2>1 · KABA-Anzeige fotografieren</h2>
       <video id="video" autoplay playsinline muted hidden></video>
       <canvas id="canvas" hidden></canvas>
-      <img id="preview" alt="Vorschau des aufgenommenen Fotos" hidden>\n      <img id="crop-preview" alt="Automatisch erkannter Display-Ausschnitt" hidden>
+      <img id="preview" alt="Vorschau des aufgenommenen Fotos" hidden>      <img id="crop-preview" alt="Automatisch erkannter Display-Ausschnitt" hidden>
       <div id="camera-placeholder" class="camera-placeholder">
         <span class="camera-icon">▣</span>
         <span>Die Kamera ist noch nicht geöffnet.</span>
@@ -52,7 +52,7 @@
         <label>Datum<input id="date" type="date"></label>
         <label>Uhrzeit<input id="time" type="time" step="60"></label>
       </div>
-      <p id="recognition-result" class="status" role="status">Noch keine Erkennung durchgeführt.</p>\n      <p id="crop-status" class="status" role="status">Der Display-Ausschnitt wird nach der Aufnahme automatisch gesucht.</p>
+      <p id="recognition-result" class="status" role="status">Noch keine Erkennung durchgeführt.</p>      <p id="crop-status" class="status" role="status">Der Display-Ausschnitt wird nach der Aufnahme automatisch gesucht.</p>
     </section>
 
     <section class="card">
@@ -69,10 +69,11 @@
       <button id="send" class="button primary full" disabled>✉ E-Mail senden</button>
       <p id="send-status" class="status" role="status">E-Mail-Versand ist noch nicht aktiviert.</p>
     </section>
-    <footer>Stempeluhr 0.3.1 · OCR lokal im Browser · Keine dauerhafte Fotospeicherung</footer>
+    <footer>Stempeluhr 0.4 · OCR lokal im Browser · Keine dauerhafte Fotospeicherung</footer>
   </main>
 
   <!-- Tesseract.js wird als OCR-Programm geladen. Das aufgenommene Foto wird nicht an einen Server gesendet. -->
+  <script async src="https://docs.opencv.org/4.x/opencv.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   <script src="app.js"></script>
 </body>

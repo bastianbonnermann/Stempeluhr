@@ -13,78 +13,96 @@ function validate(){$('send').disabled=!(photoTaken&&$('date').value&&$('time').
 ['date','time','recipient'].forEach(id=>$(id).addEventListener('input',()=>{updatePreview();validate();}));
 updatePreview();
 
-// Find the illuminated blue/cyan LCD with a permissive color mask and 8-neighbour components.
-function findDisplay(source){
- const sw=source.width,sh=source.height,scale=Math.min(1,420/Math.max(sw,sh));
- const w=Math.max(1,Math.round(sw*scale)),h=Math.max(1,Math.round(sh*scale));
- const small=document.createElement('canvas');small.width=w;small.height=h;
- const sctx=small.getContext('2d',{willReadFrequently:true});sctx.drawImage(source,0,0,w,h);
- const px=sctx.getImageData(0,0,w,h).data,mask=new Uint8Array(w*h),seen=new Uint8Array(w*h);
- for(let i=0;i<w*h;i++){
-   const k=i*4,r=px[k],g=px[k+1],b=px[k+2];
-   // blue/cyan LCD: blue and green are brighter than red; allow moderate glare/desaturation
-   if(b>62&&g>48&&b>=r*1.04&&g>=r*1.01&&(b-r)>12)mask[i]=1;
- }
- const q=new Int32Array(w*h);let best=null;
- for(let start=0;start<mask.length;start++){
-   if(!mask[start]||seen[start])continue;
-   let a=0,z=0,minX=w,minY=h,maxX=0,maxY=0,count=0;q[z++]=start;seen[start]=1;
-   while(a<z){
-     const n=q[a++],x=n%w,y=(n/w)|0;count++;
-     minX=Math.min(minX,x);maxX=Math.max(maxX,x);minY=Math.min(minY,y);maxY=Math.max(maxY,y);
-     for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){
-       if(!dx&&!dy)continue;const xx=x+dx,yy=y+dy;
-       if(xx<0||yy<0||xx>=w||yy>=h)continue;
-       const ni=yy*w+xx;if(mask[ni]&&!seen[ni]){seen[ni]=1;q[z++]=ni;}
-     }
-   }
-   const bw=maxX-minX+1,bh=maxY-minY+1,area=bw*bh,aspect=bw/bh,fill=count/area;
-   if(area>w*h*.0015&&bw>16&&bh>9&&aspect>1.05&&aspect<3.5&&fill>.08){
-     const score=area*Math.min(1,fill*2);
-     if(!best||score>best.score)best={minX,minY,maxX,maxY,score};
-   }
- }
- if(!best)return null;
- let x=best.minX/scale,y=best.minY/scale,bw=(best.maxX-best.minX+1)/scale,bh=(best.maxY-best.minY+1)/scale;
- const pxPad=bw*.12,pyPad=bh*.22;
- x=Math.max(0,Math.floor(x-pxPad));y=Math.max(0,Math.floor(y-pyPad));
- bw=Math.min(sw-x,Math.ceil(bw+2*pxPad));bh=Math.min(sh-y,Math.ceil(bh+2*pyPad));
- return makeCrop(source,x,y,bw,bh);
+function cvReady(){
+ return new Promise(resolve=>{
+  if(window.cv&&cv.Mat){resolve(true);return;}
+  let tries=0;const timer=setInterval(()=>{
+   if(window.cv&&cv.Mat){clearInterval(timer);resolve(true);}
+   else if(++tries>100){clearInterval(timer);resolve(false);}
+  },100);
+ });
 }
-function makeCrop(source,x,y,w,h){
- const out=document.createElement('canvas'),factor=Math.min(4,Math.max(2,1000/Math.max(w,h)));
- out.width=Math.round(w*factor);out.height=Math.round(h*factor);
- const c=out.getContext('2d');c.imageSmoothingEnabled=true;c.imageSmoothingQuality='high';c.drawImage(source,x,y,w,h,0,0,out.width,out.height);
+function orderQuad(points){
+ const sums=points.map(p=>p.x+p.y),diffs=points.map(p=>p.y-p.x);
+ return [
+  points[sums.indexOf(Math.min(...sums))],
+  points[diffs.indexOf(Math.min(...diffs))],
+  points[sums.indexOf(Math.max(...sums))],
+  points[diffs.indexOf(Math.max(...diffs))]
+ ];
+}
+function warpQuad(src,quad){
+ const [tl,tr,br,bl]=orderQuad(quad);
+ const width=Math.max(Math.hypot(br.x-bl.x,br.y-bl.y),Math.hypot(tr.x-tl.x,tr.y-tl.y));
+ const height=Math.max(Math.hypot(tr.x-br.x,tr.y-br.y),Math.hypot(tl.x-bl.x,tl.y-bl.y));
+ if(width<50||height<25||width/height<1.15||width/height>3.5)return null;
+ const dstW=Math.min(1400,Math.round(width*2)),dstH=Math.min(800,Math.round(height*2));
+ const srcPts=cv.matFromArray(4,1,cv.CV_32FC2,[tl.x,tl.y,tr.x,tr.y,br.x,br.y,bl.x,bl.y]);
+ const dstPts=cv.matFromArray(4,1,cv.CV_32FC2,[0,0,dstW-1,0,dstW-1,dstH-1,0,dstH-1]);
+ const M=cv.getPerspectiveTransform(srcPts,dstPts),dst=new cv.Mat();
+ cv.warpPerspective(src,dst,M,new cv.Size(dstW,dstH),cv.INTER_CUBIC,cv.BORDER_REPLICATE);
+ srcPts.delete();dstPts.delete();M.delete();
+ const out=document.createElement('canvas');out.width=dstW;out.height=dstH;cv.imshow(out,dst);dst.delete();
  return out;
 }
-function fallbackCrop(source){
- // Broad central crop as a fallback if the LCD color segmentation cannot isolate a component.
- const w=source.width*.72,h=source.height*.62,x=source.width*.14,y=source.height*.08;
- return makeCrop(source,x,y,w,h);
+async function detectDisplay(sourceCanvas){
+ const ready=await cvReady();
+ if(!ready)return {canvas:null,method:'OpenCV konnte nicht geladen werden'};
+ let src=null,gray=null,blur=null,edges=null,contours=null,hierarchy=null,kernel=null;
+ try{
+  src=cv.imread(sourceCanvas);gray=new cv.Mat();blur=new cv.Mat();edges=new cv.Mat();
+  cv.cvtColor(src,gray,cv.COLOR_RGBA2GRAY);
+  cv.GaussianBlur(gray,blur,new cv.Size(5,5),0,0,cv.BORDER_DEFAULT);
+  cv.Canny(blur,edges,35,110);
+  kernel=cv.getStructuringElement(cv.MORPH_RECT,new cv.Size(3,3));
+  cv.morphologyEx(edges,edges,cv.MORPH_CLOSE,kernel);
+  contours=new cv.MatVector();hierarchy=new cv.Mat();
+  cv.findContours(edges,contours,hierarchy,cv.RETR_LIST,cv.CHAIN_APPROX_SIMPLE);
+  const candidates=[];
+  for(let i=0;i<contours.size();i++){
+   const cnt=contours.get(i),peri=cv.arcLength(cnt,true),approx=new cv.Mat();
+   cv.approxPolyDP(cnt,approx,.025*peri,true);
+   if(approx.rows===4&&cv.isContourConvex(approx)){
+    const area=Math.abs(cv.contourArea(approx));
+    if(area>sourceCanvas.width*sourceCanvas.height*.002&&area<sourceCanvas.width*sourceCanvas.height*.65){
+     const pts=[];
+     for(let j=0;j<4;j++)pts.push({x:approx.intAt(j,0),y:approx.intAt(j,1)});
+     const ordered=orderQuad(pts);
+     const top=Math.hypot(ordered[1].x-ordered[0].x,ordered[1].y-ordered[0].y);
+     const bottom=Math.hypot(ordered[2].x-ordered[3].x,ordered[2].y-ordered[3].y);
+     const left=Math.hypot(ordered[3].x-ordered[0].x,ordered[3].y-ordered[0].y);
+     const right=Math.hypot(ordered[2].x-ordered[1].x,ordered[2].y-ordered[1].y);
+     const ratio=((top+bottom)/2)/Math.max(1,(left+right)/2);
+     if(ratio>1.2&&ratio<3.2)candidates.push({pts,area,ratio});
+    }
+   }
+   approx.delete();cnt.delete();
+  }
+  // Favor large, wide rectangular screen-like regions without letting the terminal body dominate.
+  candidates.sort((a,b)=>b.area-a.area);
+  for(const c of candidates.slice(0,12)){
+   const warped=warpQuad(src,c.pts);
+   if(warped&&warped.width/warped.height>1.2&&warped.width/warped.height<3.2)
+    return {canvas:warped,method:'Rechteckige Displayfläche perspektivisch ausgeschnitten'};
+  }
+  return {canvas:null,method:'Kein passendes Display-Rechteck sicher gefunden'};
+ }catch(e){return {canvas:null,method:'Geometrische Suche fehlgeschlagen'};}
+ finally{
+  [src,gray,blur,edges,contours,hierarchy,kernel].forEach(m=>{if(m&&m.delete)m.delete();});
+ }
 }
-function parseOCR(text){
- const lines=text.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
- let date=null,time=null;
- for(const line of lines){
-   const m=line.match(/\b(\d{2})[.\/-](\d{2})[.\/-](\d{4})\b/);
-   if(m){date=m;break;}
- }
- // Ignore any OCR line containing a four-digit year/date when searching for a clock time.
- for(const line of lines){
-   if(/\b\d{4}\b/.test(line)||/\d{2}[.\/-]\d{2}/.test(line))continue;
-   const m=line.match(/\b([01]?\d|2[0-3])[:.]([0-5]\d)\b/);
-   if(m){time=m;break;}
- }
- return {date,time};
+function fallbackCrop(source){
+ const w=source.width*.78,h=source.height*.58,x=source.width*.11,y=source.height*.12;
+ const out=document.createElement('canvas');out.width=Math.round(w*2.2);out.height=Math.round(h*2.2);
+ const c=out.getContext('2d');c.imageSmoothingQuality='high';c.drawImage(source,x,y,w,h,0,0,out.width,out.height);return out;
 }
 async function startOCR(){
- $('ocr-progress').hidden=false;$('ocr-status').textContent='Texterkennung wird vorbereitet …';$('progress-bar').style.width='5%';
+ $('ocr-progress').hidden=false;$('ocr-status').textContent='Display wird geometrisch gesucht …';$('progress-bar').style.width='5%';
  if(!window.Tesseract){$('ocr-status').textContent='OCR-Bibliothek nicht geladen. Bitte Internetverbindung prüfen und Werte manuell eingeben.';return;}
  try{
-  $('ocr-status').textContent='Display wird im Foto gesucht …';
-  croppedCanvas=findDisplay(canvas);
-  if(!croppedCanvas){croppedCanvas=fallbackCrop(canvas);$('crop-status').textContent='Kein eindeutiger LCD-Rahmen gefunden. Es wird ein großzügiger Bildausschnitt geprüft.';}
-  else $('crop-status').textContent='Displaybereich automatisch gefunden und vergrößert. Bitte den Ausschnitt kontrollieren.';
+  const detected=await detectDisplay(canvas);
+  croppedCanvas=detected.canvas||fallbackCrop(canvas);
+  $('crop-status').textContent=detected.canvas?`${detected.method}. Bitte den Ausschnitt kontrollieren.`:`${detected.method}. Ein zentraler Ersatz-Ausschnitt wird geprüft.`;
   cropPreview.src=croppedCanvas.toDataURL('image/jpeg',.92);cropPreview.hidden=false;
   if(!ocrWorker){
    ocrWorker=await Tesseract.createWorker('eng',1,{logger:m=>{
@@ -93,18 +111,24 @@ async function startOCR(){
    await ocrWorker.setParameters({tessedit_char_whitelist:'0123456789.:/',preserve_interword_spaces:'1',tessedit_pageseg_mode:'6'});
   }
   let result=await ocrWorker.recognize(croppedCanvas);
-  let parsed=parseOCR(result.data.text||'');
-  // If crop produced neither date nor time, try full photo once.
-  if(!parsed.date&&!parsed.time){
-    $('ocr-status').textContent='Ausschnitt nicht lesbar – Gesamtfoto wird zusätzlich geprüft …';
-    result=await ocrWorker.recognize(canvas);parsed=parseOCR(result.data.text||'');
+  let text=result.data.text||'';
+  let dateMatch=text.match(/\b(\d{2})[.\/-](\d{2})[.\/-](\d{4})\b/);
+  // Date is removed before time parsing; only a colon is accepted as a clock separator.
+  let noDate=dateMatch?text.replace(dateMatch[0],' '):text;
+  let timeMatch=noDate.match(/\b([01]?\d|2[0-3]):([0-5]\d)\b/);
+  if(!dateMatch&&!timeMatch){
+   $('ocr-status').textContent='Ausschnitt ohne lesbare Zeitdaten – Gesamtfoto wird geprüft …';
+   result=await ocrWorker.recognize(canvas);text=result.data.text||'';
+   dateMatch=text.match(/\b(\d{2})[.\/-](\d{2})[.\/-](\d{4})\b/);
+   noDate=dateMatch?text.replace(dateMatch[0],' '):text;
+   timeMatch=noDate.match(/\b([01]?\d|2[0-3]):([0-5]\d)\b/);
   }
   let fd=false,ft=false;
-  if(parsed.date){const [,dd,mm,yyyy]=parsed.date,candidate=`${yyyy}-${mm}-${dd}`,d=new Date(`${candidate}T12:00:00`);
+  if(dateMatch){const [,dd,mm,yyyy]=dateMatch,candidate=`${yyyy}-${mm}-${dd}`,d=new Date(`${candidate}T12:00:00`);
    if(!Number.isNaN(d.getTime())&&d.getFullYear()==Number(yyyy)&&d.getMonth()+1==Number(mm)&&d.getDate()==Number(dd)){$('date').value=candidate;fd=true;}}
-  if(parsed.time){$('time').value=`${parsed.time[1].padStart(2,'0')}:${parsed.time[2]}`;ft=true;}
+  if(timeMatch){$('time').value=`${timeMatch[1].padStart(2,'0')}:${timeMatch[2]}`;ft=true;}
   updatePreview();validate();$('progress-bar').style.width='100%';
-  $('recognition-result').textContent=fd&&ft?'Datum und Uhrzeit erkannt. Bitte unbedingt mit der KABA-Anzeige vergleichen.':'Nicht alle Werte erkannt. Bitte Datum und Uhrzeit anhand der Anzeige manuell ergänzen oder korrigieren.';
+  $('recognition-result').textContent=fd&&ft?'Datum und Uhrzeit erkannt. Bitte unbedingt mit der KABA-Anzeige vergleichen.':'Nicht alle Werte erkannt. Bitte Datum und Uhrzeit manuell ergänzen oder korrigieren.';
   $('ocr-status').textContent=fd&&ft?'Erkennung abgeschlossen.':'Erkennung teilweise oder nicht erfolgreich.';
  }catch(e){$('ocr-status').textContent='Texterkennung fehlgeschlagen. Bitte Werte manuell eingeben.';$('recognition-result').textContent='OCR konnte die Anzeige nicht zuverlässig lesen.';}
 }
