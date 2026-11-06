@@ -1,3 +1,4 @@
+// Stempeluhr Version 1.2
 (() => {
   const $ = id => document.getElementById(id);
   const recipient = $('recipient');

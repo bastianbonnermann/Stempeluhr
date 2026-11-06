@@ -1,12 +1,32 @@
-STEMPELUHR 1.1 – direkter Gmail-Versand
+STEMPELUHR VERSION 1.2
+======================
 
-1. Google Cloud-Projekt erstellen/auswählen.
-2. Gmail API aktivieren.
-3. Google Auth Platform / OAuth-Zustimmungsbildschirm konfigurieren; bei externer Test-App das eigene Google-Konto als Testnutzer hinzufügen.
-4. OAuth-Client erstellen: Webanwendung.
-5. Autorisierten JavaScript-Ursprung eintragen: https://bastianbonnermann.github.io
-6. Client-ID kopieren. Kein Client Secret in die App eintragen.
-7. In der Stempeluhr Einrichtung öffnen, Client-ID eintragen, speichern.
-8. Gmail verbinden und gmail.send erlauben.
+Dateien im Paket:
+- index.html             Hauptseite der App (Anzeige Version 1.2)
+- app.js                 Gmail-Anmeldung und E-Mail-Versand
+- style.css              Gestaltung
+- sw.js                  Service Worker; Cache-Version stempeluhr-1.2
+- manifest.webmanifest   PWA-Einstellungen für Startbildschirm
+- icon-192.png           App-Symbol
+- icon-512.png           App-Symbol in hoher Auflösung
 
-Die App verwendet ausschließlich https://www.googleapis.com/auth/gmail.send und kann damit keine E-Mails lesen. Die Client-ID ist öffentlich; Access Tokens werden nur im Arbeitsspeicher gehalten. Nach Ablauf kann Google erneut eine Autorisierung verlangen. Gmail API Versand erfolgt über users.messages.send.
+INSTALLATION / GITHUB
+1. Alle Dateien dieses Ordners in das Hauptverzeichnis des bestehenden
+   GitHub-Repositories Stempeluhr hochladen.
+2. Vorhandene gleichnamige Dateien überschreiben.
+3. Änderungen committen.
+4. Einige Minuten warten, dann die GitHub-Pages-App neu laden.
+5. Falls das Smartphone noch die alte Fassung zeigt: App vollständig
+   schließen und erneut öffnen. Falls nötig Browser-Website-Daten bzw.
+   den App-Cache für GitHub Pages löschen und erneut laden.
+
+WICHTIG
+- Die OAuth-Client-ID und Empfängeradresse werden lokal im Browser gespeichert.
+- Das Google-Zugriffstoken wird nur im Arbeitsspeicher gehalten. Nach einem
+  vollständigen Neuladen muss Gmail daher erneut per Klick verbunden werden.
+- Der Versand benötigt Internetzugang und die Gmail-Sendeberechtigung.
+- Der Schutz vor versehentlichem Doppelversand merkt sich lokal die bereits
+  erfolgreich versendete Kombination aus Empfänger, Datum und Uhrzeit.
+- Wenn dieselbe Zeit absichtlich erneut gesendet werden soll, muss die
+  Zeitangabe geändert werden. Die lokale Versandhistorie kann im Browser-
+  Speicher gelöscht werden; dadurch wird nur der lokale Duplikatschutz entfernt.
