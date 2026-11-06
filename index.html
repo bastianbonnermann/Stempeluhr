@@ -3,78 +3,70 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#172554">
-  <meta name="description" content="Private Stempeluhr zum Erfassen und Versenden der Ausstempelzeit.">
-  <link rel="manifest" href="manifest.webmanifest">
-  <link rel="icon" href="icon-192.png">
-  <link rel="apple-touch-icon" href="icon-192.png">
-  <link rel="stylesheet" href="style.css">
+  <meta name="theme-color" content="#243b70">
+  <meta name="description" content="Persönliche Stempeluhr zum Erfassen und Versenden der Ausstempelzeit.">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icon-192.png">
+  <link rel="apple-touch-icon" href="./icon-192.png">
+  <link rel="stylesheet" href="./style.css">
   <title>Stempeluhr</title>
 </head>
 <body>
   <main class="app">
-    <header>
+    <header class="brand">
       <div class="brand-mark">S</div>
-      <div><p class="eyebrow">PERSÖNLICHES ZEITPROTOKOLL</p><h1>Stempeluhr</h1></div>
+      <div>
+        <div class="eyebrow">PERSÖNLICHES ZEITPROTOKOLL</div>
+        <h1>Stempeluhr</h1>
+      </div>
     </header>
 
-    <section class="card intro">
+    <section class="intro card">
       <p class="muted">Ausstempelzeit erfassen</p>
-      <h2>Ein Foto. Eine Kontrolle. Eine E-Mail.</h2>
-      <p class="muted small">Das Das Foto wird nur vorübergehend auf deinem Handy verarbeitet. Es wird weder gespeichert noch hochgeladen.</p>
+      <h2>Uhrzeit prüfen, korrigieren und per E-Mail senden.</h2>
+      <p class="small muted">Datum und Uhrzeit werden automatisch von deinem Smartphone übernommen.</p>
     </section>
 
-    <section class="card">
-      <h2>1 · KABA-Anzeige fotografieren</h2>
-      <video id="video" autoplay playsinline muted hidden></video>
-      <canvas id="canvas" hidden></canvas>
-      <img id="preview" alt="Vorschau des aufgenommenen Fotos" hidden>      <img id="crop-preview" alt="Automatisch erkannter Display-Ausschnitt" hidden>
-      <div id="camera-placeholder" class="camera-placeholder">
-        <span class="camera-icon">▣</span>
-        <span>Die Kamera ist noch nicht geöffnet.</span>
+    <section class="card time-card" aria-labelledby="time-heading">
+      <div class="section-kicker">1 · DEINE AUSSTEMPELZEIT</div>
+      <p id="current-date" class="date-line">–</p>
+      <h2 id="time-heading" class="time-display" aria-live="off">--:--</h2>
+      <p class="muted small">Aktuelle Zeit deines Smartphones</p>
+
+      <div class="divider"></div>
+      <h3>Uhrzeit korrigieren</h3>
+      <div class="adjust-row">
+        <button class="adjust-button" data-delta="-5" aria-label="Fünf Minuten zurück">−5</button>
+        <button class="adjust-button" data-delta="-1" aria-label="Eine Minute zurück">−1</button>
+        <div class="adjusted-time" id="adjusted-time" aria-live="polite">--:--</div>
+        <button class="adjust-button" data-delta="1" aria-label="Eine Minute vor">+1</button>
+        <button class="adjust-button" data-delta="5" aria-label="Fünf Minuten vor">+5</button>
       </div>
-      <div class="button-row">
-        <button id="start-camera" class="button secondary">Kamera öffnen</button>
-        <button id="take-photo" class="button primary" disabled>Foto aufnehmen</button>
-      </div>
-      <button id="retake" class="button text-button" hidden>Neues Foto aufnehmen</button>
-      <p id="camera-status" class="status" role="status">Kamerazugriff wird erst nach deiner Freigabe aktiviert.</p>
-      <div id="ocr-progress" class="progress-wrap" hidden>
-        <div class="progress-track"><div id="progress-bar" class="progress-bar"></div></div>
-        <p id="ocr-status" class="status" role="status">Texterkennung wird vorbereitet …</p>
-      </div>
+      <p class="small muted hint">Die Korrektur verändert nur die zu versendende Uhrzeit, nicht die Uhr deines Handys.</p>
+      <button id="reset-time" class="text-button" type="button">Auf aktuelle Uhrzeit zurücksetzen</button>
     </section>
 
-    <section class="card">
-      <h2>2 · Erkannte Zeit kontrollieren</h2>
-      <p class="muted small">Bitte kontrolliere Datum und Uhrzeit vor dem Versand. Du kannst beide Werte jederzeit korrigieren.</p>
-      <div class="fields">
-        <label>Datum<input id="date" type="date"></label>
-        <label>Uhrzeit<input id="time" type="time" step="60"></label>
-      </div>
-      <p id="recognition-result" class="status" role="status">Noch keine Erkennung durchgeführt.</p>      <p id="crop-status" class="status" role="status">Der Display-Ausschnitt wird nach der Aufnahme automatisch gesucht.</p>
-    </section>
+    <section class="card email-card">
+      <div class="section-kicker">2 · E-MAIL VORBEREITEN</div>
+      <label for="recipient">Deine Arbeits-E-Mail-Adresse</label>
+      <input id="recipient" type="email" inputmode="email" autocomplete="email" placeholder="name@firma.de">
+      <p class="small muted">Die Adresse bleibt auf diesem Gerät gespeichert.</p>
 
-    <section class="card">
-      <h2>3 · E-Mail vorbereiten</h2>
-      <p class="muted small">Der automatische Versand über dein Gmail-Konto wird in einem späteren Schritt sicher eingerichtet. In dieser Version wird noch keine E-Mail versendet.</p>
-      <label>Arbeits-E-Mail-Adresse
-        <input id="recipient" type="email" autocomplete="email" placeholder="name@firma.de">
-      </label>
       <div class="mail-preview">
-        <p class="eyebrow">VORSCHAU</p>
+        <div class="preview-label">VORSCHAU</div>
         <p><strong>Betreff:</strong> <span id="subject-preview">Ausstempelzeit</span></p>
         <p id="body-preview">Datum: –<br>Uhrzeit: –</p>
       </div>
-      <button id="send" class="button primary full" disabled>✉ E-Mail senden</button>
-      <p id="send-status" class="status" role="status">E-Mail-Versand ist noch nicht aktiviert.</p>
-    </section>
-    <footer>Stempeluhr 0.5 · OCR lokal im Browser · Keine dauerhafte Fotospeicherung</footer>
-  </main>
 
-  <!-- Tesseract.js wird als OCR-Programm geladen. Das aufgenommene Foto wird nicht an einen Server gesendet. -->
-  <script async src="https://docs.opencv.org/4.x/opencv.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-  <script src="app.js"></script>
+      <button id="send-mail" class="send-button" type="button" disabled>
+        <span aria-hidden="true">✉</span> E-Mail in Gmail vorbereiten
+      </button>
+      <p id="status" class="small muted status" role="status">Bitte trage deine Arbeits-E-Mail-Adresse ein.</p>
+      <p class="small fine-print">Gmail öffnet einen vorbereiteten Nachrichtenentwurf. Du prüfst ihn und bestätigst den Versand selbst.</p>
+    </section>
+
+    <footer>Stempeluhr 1.0 · Lokale Zeit · Keine Kamera · Keine Fotoaufnahme</footer>
+  </main>
+  <script src="./app.js"></script>
 </body>
 </html>

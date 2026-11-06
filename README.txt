@@ -1,21 +1,30 @@
-STEMPELUHR 0.4 – geometrische Display-Erkennung
+STEMPELUHR 1.0
 
-Neu:
-- Lädt OpenCV.js im Browser.
-- Erkennt rechteckige Konturen im Gesamtfoto über Graustufen, Blur, Canny-Kanten, Konturensuche und Viereck-Approximation.
-- Wählt einen plausiblen rechteckigen Displaykandidaten und korrigiert Perspektive per WarpPerspective.
-- Zeigt den entzerrten Ausschnitt an.
-- Fallback auf zentralen Ausschnitt, falls kein eindeutiges Display-Rechteck gefunden wird.
-- OCR akzeptiert Uhrzeit mit Doppelpunkt und entfernt das erkannte Datum zuerst.
+Vereinfachte Version ohne Kamera und Bilderkennung.
 
-Datenschutz / Netzwerk:
-- Foto und Zuschnitt werden lokal im Browser verarbeitet; es wird kein Foto an einen OCR- oder CV-Server übertragen.
-- OpenCV.js, Tesseract.js und die Sprachdaten werden beim Laden von externen CDNs bezogen.
-- Keine dauerhafte Fotoablage in Galerie/Cloud.
+Funktionen:
+- Zeigt Datum und lokale Uhrzeit des Smartphones.
+- Aktualisiert die aktuelle Uhrzeit automatisch.
+- Korrektur der zu versendenden Uhrzeit in 1- und 5-Minuten-Schritten.
+- Zurücksetzen auf die aktuelle Smartphone-Zeit.
+- Arbeits-E-Mail-Adresse wird lokal auf dem Gerät gespeichert.
+- Öffnet einen vorbereiteten E-Mail-Entwurf über mailto.
 
-Wichtig:
-Automatische Rechteckerkennung ist eine Heuristik. Sie kann auch ein anderes Rechteck im Bild auswählen. Deshalb muss der angezeigte Ausschnitt kontrolliert werden und Datum/Uhrzeit müssen vor Versand überprüft werden.
-Gmail-Versand ist weiterhin nicht aktiviert.
+Wichtiger Hinweis zum Versand:
+Diese Version versendet die E-Mail nicht vollautomatisch über die Gmail-API.
+Sie öffnet die auf dem Smartphone konfigurierte E-Mail-App (idealerweise Gmail)
+mit Empfänger, Betreff und Nachrichtentext. Der Nutzer prüft und sendet die Mail
+selbst. Das ist absichtlich ohne OAuth-Client-ID, Server oder gespeicherte
+Zugangsdaten umgesetzt. Ein echter API-Versand mit Gmail-Autorisierung kann
+später ergänzt werden.
 
-Update:
-Alle Dateien direkt in das Repository-Hauptverzeichnis hochladen und überschreiben. Service-Worker-Cache-Version ist v04.
+Datenschutz:
+- Keine Kamera und keine Fotos.
+- Keine externe OCR- oder CV-Bibliothek.
+- Die Empfängeradresse wird in localStorage auf dem Gerät gespeichert.
+- Datum und Uhrzeit kommen aus der lokalen Geräteuhr.
+
+Installation:
+Alle Dateien in das Hauptverzeichnis des GitHub-Pages-Repositories hochladen
+und vorhandene Dateien überschreiben. Danach Pages-Deployment abwarten und
+die Website neu laden. Der Service-Worker-Cache wurde auf stempeluhr-1.0 gesetzt.
