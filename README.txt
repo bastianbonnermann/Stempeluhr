@@ -1,21 +1,14 @@
-STEMPELUHR 0.3 – automatische Display-Suche
+STEMPELUHR 0.3.1 – Korrektur der Display-Suche und OCR-Zeitfilter
 
 Neu:
-- Sucht im gesamten Foto nach dem blau/türkisen beleuchteten LCD-Bereich der KABA-Anzeige.
-- Schneidet den erkannten Bereich automatisch aus und vergrößert ihn für OCR.
-- Zeigt den Ausschnitt zur Sichtkontrolle an.
-- Falls kein Display gefunden wird, versucht OCR das Gesamtfoto.
-- Datum wird vor der Uhrzeitsuche entfernt, damit z.B. 06.11 nicht als 06:11 gelesen wird.
-- Kamera-Platzhalter wird nach der Aufnahme ausgeblendet.
+- Farbsegmentierung mit toleranterem Blau-/Cyan-Farbbereich und 8-Nachbar-Komponenten.
+- Größerer Display-Ausschnitt mit Vergrößerung.
+- Fallback auf einen großzügigen zentralen Ausschnitt und bei Bedarf Gesamtfoto.
+- Zeitparser ignoriert OCR-Zeilen, die ein Datum/Jahr enthalten, damit Datumsbestandteile nicht als Uhrzeit missverstanden werden.
+- Korrigierte sichtbare Versionsnummer und HTML-Zeilenumbrüche.
 
 Datenschutz:
-- Foto und Ausschnitt werden im Browser-Speicher/RAM verarbeitet.
-- Es gibt keinen Upload des Fotos an den OCR-Dienst.
-- Tesseract.js und Erkennungsdaten werden beim ersten Gebrauch von einem CDN geladen.
-- Kein dauerhafter Bildspeicher wird durch die App angelegt.
-
-Noch nicht enthalten:
-- Gmail-Autorisierung und echter E-Mail-Versand.
+Foto und Ausschnitte werden im Browser verarbeitet, nicht an einen OCR-Dienst hochgeladen und nicht dauerhaft in Galerie/Cloud gespeichert. Tesseract.js und Sprachdaten werden vom CDN geladen.
 
 Update:
-Alle Dateien direkt ins Hauptverzeichnis des Repositorys hochladen und bestehende Dateien überschreiben. Service Worker Cache-Version ist v03.
+Alle Dateien aus diesem Ordner direkt ins Repository-Hauptverzeichnis hochladen und überschreiben. Danach GitHub Pages Deployment abwarten und Seite neu laden.
