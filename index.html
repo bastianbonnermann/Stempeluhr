@@ -1,72 +1,9 @@
-<!doctype html>
-<html lang="de">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#243b70">
-  <meta name="description" content="Persönliche Stempeluhr zum Erfassen und Versenden der Ausstempelzeit.">
-  <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="icon" href="./icon-192.png">
-  <link rel="apple-touch-icon" href="./icon-192.png">
-  <link rel="stylesheet" href="./style.css">
-  <title>Stempeluhr</title>
-</head>
-<body>
-  <main class="app">
-    <header class="brand">
-      <div class="brand-mark">S</div>
-      <div>
-        <div class="eyebrow">PERSÖNLICHES ZEITPROTOKOLL</div>
-        <h1>Stempeluhr</h1>
-      </div>
-    </header>
-
-    <section class="intro card">
-      <p class="muted">Ausstempelzeit erfassen</p>
-      <h2>Uhrzeit prüfen, korrigieren und per E-Mail senden.</h2>
-      <p class="small muted">Datum und Uhrzeit werden automatisch von deinem Smartphone übernommen.</p>
-    </section>
-
-    <section class="card time-card" aria-labelledby="time-heading">
-      <div class="section-kicker">1 · DEINE AUSSTEMPELZEIT</div>
-      <p id="current-date" class="date-line">–</p>
-      <h2 id="time-heading" class="time-display" aria-live="off">--:--</h2>
-      <p class="muted small">Aktuelle Zeit deines Smartphones</p>
-
-      <div class="divider"></div>
-      <h3>Uhrzeit korrigieren</h3>
-      <div class="adjust-row">
-        <button class="adjust-button" data-delta="-5" aria-label="Fünf Minuten zurück">−5</button>
-        <button class="adjust-button" data-delta="-1" aria-label="Eine Minute zurück">−1</button>
-        <div class="adjusted-time" id="adjusted-time" aria-live="polite">--:--</div>
-        <button class="adjust-button" data-delta="1" aria-label="Eine Minute vor">+1</button>
-        <button class="adjust-button" data-delta="5" aria-label="Fünf Minuten vor">+5</button>
-      </div>
-      <p class="small muted hint">Die Korrektur verändert nur die zu versendende Uhrzeit, nicht die Uhr deines Handys.</p>
-      <button id="reset-time" class="text-button" type="button">Auf aktuelle Uhrzeit zurücksetzen</button>
-    </section>
-
-    <section class="card email-card">
-      <div class="section-kicker">2 · E-MAIL VORBEREITEN</div>
-      <label for="recipient">Deine Arbeits-E-Mail-Adresse</label>
-      <input id="recipient" type="email" inputmode="email" autocomplete="email" placeholder="name@firma.de">
-      <p class="small muted">Die Adresse bleibt auf diesem Gerät gespeichert.</p>
-
-      <div class="mail-preview">
-        <div class="preview-label">VORSCHAU</div>
-        <p><strong>Betreff:</strong> <span id="subject-preview">Ausstempelzeit</span></p>
-        <p id="body-preview">Datum: –<br>Uhrzeit: –</p>
-      </div>
-
-      <button id="send-mail" class="send-button" type="button" disabled>
-        <span aria-hidden="true">✉</span> E-Mail in Gmail vorbereiten
-      </button>
-      <p id="status" class="small muted status" role="status">Bitte trage deine Arbeits-E-Mail-Adresse ein.</p>
-      <p class="small fine-print">Gmail öffnet einen vorbereiteten Nachrichtenentwurf. Du prüfst ihn und bestätigst den Versand selbst.</p>
-    </section>
-
-    <footer>Stempeluhr 1.0 · Lokale Zeit · Keine Kamera · Keine Fotoaufnahme</footer>
-  </main>
-  <script src="./app.js"></script>
-</body>
-</html>
+<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#243b70"><link rel="manifest" href="./manifest.webmanifest"><link rel="icon" href="./icon-192.png"><link rel="stylesheet" href="./style.css"><title>Stempeluhr</title></head><body><main class="app">
+<header class="brand"><div class="brand-mark">S</div><div><div class="eyebrow">PERSÖNLICHES ZEITPROTOKOLL</div><h1>Stempeluhr</h1></div></header>
+<section class="intro card"><p class="muted">Ausstempelzeit erfassen</p><h2>Uhrzeit prüfen, korrigieren und direkt senden.</h2><p class="small muted">Datum und Uhrzeit kommen automatisch von deinem Smartphone.</p></section>
+<section class="card"><div class="section-kicker">1 · DEINE AUSSTEMPELZEIT</div><p id="current-date" class="date-line">–</p><h2 id="live-time" class="time-display">--:--</h2><p class="small muted center">Aktuelle Zeit deines Smartphones</p><div class="divider"></div><h3>Uhrzeit korrigieren</h3><div class="adjust-row"><button data-delta="-5">−5</button><button data-delta="-1">−1</button><div id="selected-time" class="adjusted-time">--:--</div><button data-delta="1">+1</button><button data-delta="5">+5</button></div><p class="small muted hint">Die Korrektur verändert nur die zu versendende Zeit.</p><button id="reset" class="text-button">Auf aktuelle Uhrzeit zurücksetzen</button></section>
+<section class="card"><div class="section-kicker">2 · E-MAIL-VERSAND</div><label for="recipient">Deine Arbeits-E-Mail-Adresse</label><input id="recipient" type="email" autocomplete="email" placeholder="name@firma.de"><p class="small muted">Die Empfängeradresse bleibt auf diesem Gerät gespeichert.</p><div class="mail-preview"><div class="preview-label">VORSCHAU</div><p><b>Betreff:</b> <span id="subject">Ausstempelzeit</span></p><p id="body">Datum: –<br>Uhrzeit: –</p></div>
+<details id="setup"><summary>Einrichtung: Google-Verbindung</summary><p class="small muted">Hier einmalig die OAuth-Client-ID aus Google Cloud eintragen. Sie ist keine geheime Zugangsinformation.</p><label for="client-id">Google OAuth-Client-ID</label><input id="client-id" placeholder="…apps.googleusercontent.com" autocomplete="off"><button id="save-client" class="secondary">Client-ID speichern</button><p id="client-status" class="small muted">Noch nicht eingerichtet.</p></details>
+<div class="connection"><span id="dot" class="dot"></span><span id="connection" class="small muted">Gmail noch nicht verbunden</span><button id="connect" class="link-button">Gmail verbinden</button></div>
+<button id="send" class="send-button" disabled>✉ Jetzt senden</button><p id="status" class="small muted status" role="status">Bitte zuerst die Google-Verbindung einrichten.</p><p class="fine small muted">Die App fordert ausschließlich die Berechtigung an, E-Mails über Gmail zu senden. Sie kann damit keine Nachrichten lesen.</p></section><footer>Stempeluhr 1.1 · Direkter Gmail-Versand · Keine Kamera</footer></main>
+<script src="https://accounts.google.com/gsi/client" async defer></script><script src="./app.js"></script></body></html>

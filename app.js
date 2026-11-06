@@ -1,92 +1,11 @@
-(() => {
-  const $ = id => document.getElementById(id);
-  const recipient = $('recipient');
-  let baseTime = new Date();
-  let offsetMinutes = 0;
-  let clockTimer = null;
-
-  const pad = n => String(n).padStart(2, '0');
-  const dateText = d => new Intl.DateTimeFormat('de-DE', {
-    weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric'
-  }).format(d);
-  const dateForMail = d => new Intl.DateTimeFormat('de-DE', {
-    day: '2-digit', month: '2-digit', year: 'numeric'
-  }).format(d);
-  const timeText = d => `${pad(d.getHours())}:${pad(d.getMinutes())}`;
-
-  function adjustedDate() {
-    return new Date(baseTime.getTime() + offsetMinutes * 60000);
-  }
-
-  function refresh() {
-    const now = new Date();
-    // Keep the displayed live clock synchronized with the phone's local time.
-    baseTime = now;
-    $('current-date').textContent = dateText(now);
-    $('time-heading').textContent = timeText(now);
-    const selected = adjustedDate();
-    $('adjusted-time').textContent = timeText(selected);
-    const mailDate = dateForMail(selected);
-    $('subject-preview').textContent = `Ausstempelzeit – ${mailDate}`;
-    $('body-preview').innerHTML = `Datum: ${mailDate}<br>Uhrzeit: ${timeText(selected)}`;
-    validate();
-  }
-
-  function validate() {
-    const ok = recipient.value.trim() !== '' && recipient.checkValidity();
-    $('send-mail').disabled = !ok;
-    $('status').textContent = ok
-      ? 'Bereit. Gmail öffnet einen vorbereiteten Nachrichtenentwurf.'
-      : 'Bitte trage eine gültige Arbeits-E-Mail-Adresse ein.';
-  }
-
-  document.querySelectorAll('[data-delta]').forEach(button => {
-    button.addEventListener('click', () => {
-      offsetMinutes += Number(button.dataset.delta);
-      const selected = adjustedDate();
-      $('adjusted-time').textContent = timeText(selected);
-      const mailDate = dateForMail(selected);
-      $('subject-preview').textContent = `Ausstempelzeit – ${mailDate}`;
-      $('body-preview').innerHTML = `Datum: ${mailDate}<br>Uhrzeit: ${timeText(selected)}`;
-      validate();
-    });
-  });
-
-  $('reset-time').addEventListener('click', () => {
-    offsetMinutes = 0;
-    refresh();
-  });
-
-  recipient.value = localStorage.getItem('stempeluhr_recipient') || '';
-  recipient.addEventListener('input', () => {
-    localStorage.setItem('stempeluhr_recipient', recipient.value.trim());
-    validate();
-  });
-
-  $('send-mail').addEventListener('click', () => {
-    if (!recipient.checkValidity() || !recipient.value.trim()) {
-      recipient.reportValidity();
-      return;
-    }
-    const selected = adjustedDate();
-    const mailDate = dateForMail(selected);
-    const subject = `Ausstempelzeit – ${mailDate}`;
-    const body = `Datum: ${mailDate}\nUhrzeit: ${timeText(selected)}`;
-    const url = `mailto:${encodeURIComponent(recipient.value.trim())}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    $('status').textContent = 'E-Mail-Entwurf wird geöffnet. Bitte in Gmail auf Senden tippen.';
-    window.location.href = url;
-  });
-
-  refresh();
-  // Update the real clock every second; the selected correction remains relative to it.
-  clockTimer = window.setInterval(refresh, 1000);
-
-  if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js').catch(() => {});
-    });
-  }
-  window.addEventListener('pagehide', () => {
-    if (clockTimer) window.clearInterval(clockTimer);
-  });
-})();
+(()=>{const $=id=>document.getElementById(id),recipient=$('recipient'),clientInput=$('client-id'),scope='https://www.googleapis.com/auth/gmail.send';let base=new Date(),offset=0,token=null,expires=0,tokenClient=null,pending='',busy=false;
+const pad=n=>String(n).padStart(2,'0'),fmtDate=d=>new Intl.DateTimeFormat('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'}).format(d),fmtLong=d=>new Intl.DateTimeFormat('de-DE',{weekday:'long',day:'2-digit',month:'2-digit',year:'numeric'}).format(d),fmtTime=d=>pad(d.getHours())+':'+pad(d.getMinutes()),selected=()=>new Date(base.getTime()+offset*60000);
+function status(t,err=false){$('status').textContent=t;$('status').style.color=err?'#b42318':''}
+function draw(){base=new Date();$('current-date').textContent=fmtLong(base);$('live-time').textContent=fmtTime(base);const d=selected(),ds=fmtDate(d);$('selected-time').textContent=fmtTime(d);$('subject').textContent='Ausstempelzeit – '+ds;$('body').innerHTML='Datum: '+ds+'<br>Uhrzeit: '+fmtTime(d);validate()}
+function validate(){$('send').disabled=busy||!recipient.value.trim()||!recipient.checkValidity()||!clientInput.value.trim()}
+function connected(v){$('dot').classList.toggle('on',v);$('connection').textContent=v?'Gmail in dieser Sitzung verbunden':'Gmail noch nicht verbunden'}
+function client(){if(!window.google?.accounts?.oauth2)throw Error('Google-Anmeldedienst lädt noch. Bitte kurz warten und erneut versuchen.');if(!clientInput.value.trim())throw Error('Bitte zuerst die Google OAuth-Client-ID eintragen.');if(!tokenClient)tokenClient=google.accounts.oauth2.initTokenClient({client_id:clientInput.value.trim(),scope,callback:async r=>{const a=pending;pending='';if(r.error||!r.access_token){token=null;connected(false);status('Google-Autorisierung nicht abgeschlossen.',true);return}token=r.access_token;expires=Date.now()+(Number(r.expires_in||3600)*1000)-60000;connected(true);if(a==='send')await send()} ,error_callback:e=>{pending='';status(e?.type==='popup_closed'?'Google-Anmeldung geschlossen.':'Google-Anmeldung konnte nicht gestartet werden.',true)}});return tokenClient}
+function authorize(action,prompt){try{pending=action;client().requestAccessToken(prompt?{prompt}:{})}catch(e){pending='';status(e.message,true)}}
+function rawEmail(to,subject,body){const enc=s=>btoa(unescape(encodeURIComponent(s)));const msg='To: '+to+'\r\nSubject: =?UTF-8?B?'+enc(subject)+'?=\r\nMIME-Version: 1.0\r\nContent-Type: text/plain; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\n\r\n'+enc(body);return enc(msg).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
+async function send(){if(busy)return;if(!recipient.checkValidity()||!recipient.value.trim()){recipient.reportValidity();return}if(!token||Date.now()>=expires){token=null;connected(false);authorize('send','');return}busy=true;validate();status('E-Mail wird über Gmail versendet …');const d=selected(),ds=fmtDate(d),subject='Ausstempelzeit – '+ds,body='Datum: '+ds+'\nUhrzeit: '+fmtTime(d);try{const res=await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({raw:rawEmail(recipient.value.trim(),subject,body)})});if(!res.ok){const e=await res.json().catch(()=>({}));if(res.status===401){token=null;expires=0;connected(false);status('Google-Zugriff abgelaufen. Bitte Gmail erneut verbinden.',true)}else if(res.status===403)status('Gmail-Zugriff verweigert. Bitte Gmail API und gmail.send-Freigabe prüfen.',true);else status('Gmail-Fehler '+res.status+': '+(e.error?.message||'Versand fehlgeschlagen.'),true);return}status('E-Mail erfolgreich versendet.')}catch(e){status('Gmail nicht erreichbar. Internetverbindung prüfen.',true)}finally{busy=false;validate()}}
+recipient.value=localStorage.getItem('stempeluhr_recipient')||'';clientInput.value=localStorage.getItem('stempeluhr_google_client_id')||'';recipient.addEventListener('input',()=>{localStorage.setItem('stempeluhr_recipient',recipient.value.trim());validate()});clientInput.addEventListener('input',validate);document.querySelectorAll('[data-delta]').forEach(b=>b.addEventListener('click',()=>{offset+=Number(b.dataset.delta);draw()}));$('reset').addEventListener('click',()=>{offset=0;draw()});$('save-client').addEventListener('click',()=>{localStorage.setItem('stempeluhr_google_client_id',clientInput.value.trim());tokenClient=null;token=null;expires=0;connected(false);$('client-status').textContent='Client-ID auf diesem Gerät gespeichert.';status('Client-ID gespeichert. Jetzt Gmail verbinden.');validate()});$('connect').addEventListener('click',()=>authorize('connect','consent'));$('send').addEventListener('click',()=>{if(!token||Date.now()>=expires)authorize('send','');else send()});draw();validate();setInterval(draw,1000);if('serviceWorker'in navigator&&location.protocol.startsWith('http'))addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}))})();

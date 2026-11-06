@@ -1,30 +1,12 @@
-STEMPELUHR 1.0
+STEMPELUHR 1.1 – direkter Gmail-Versand
 
-Vereinfachte Version ohne Kamera und Bilderkennung.
+1. Google Cloud-Projekt erstellen/auswählen.
+2. Gmail API aktivieren.
+3. Google Auth Platform / OAuth-Zustimmungsbildschirm konfigurieren; bei externer Test-App das eigene Google-Konto als Testnutzer hinzufügen.
+4. OAuth-Client erstellen: Webanwendung.
+5. Autorisierten JavaScript-Ursprung eintragen: https://bastianbonnermann.github.io
+6. Client-ID kopieren. Kein Client Secret in die App eintragen.
+7. In der Stempeluhr Einrichtung öffnen, Client-ID eintragen, speichern.
+8. Gmail verbinden und gmail.send erlauben.
 
-Funktionen:
-- Zeigt Datum und lokale Uhrzeit des Smartphones.
-- Aktualisiert die aktuelle Uhrzeit automatisch.
-- Korrektur der zu versendenden Uhrzeit in 1- und 5-Minuten-Schritten.
-- Zurücksetzen auf die aktuelle Smartphone-Zeit.
-- Arbeits-E-Mail-Adresse wird lokal auf dem Gerät gespeichert.
-- Öffnet einen vorbereiteten E-Mail-Entwurf über mailto.
-
-Wichtiger Hinweis zum Versand:
-Diese Version versendet die E-Mail nicht vollautomatisch über die Gmail-API.
-Sie öffnet die auf dem Smartphone konfigurierte E-Mail-App (idealerweise Gmail)
-mit Empfänger, Betreff und Nachrichtentext. Der Nutzer prüft und sendet die Mail
-selbst. Das ist absichtlich ohne OAuth-Client-ID, Server oder gespeicherte
-Zugangsdaten umgesetzt. Ein echter API-Versand mit Gmail-Autorisierung kann
-später ergänzt werden.
-
-Datenschutz:
-- Keine Kamera und keine Fotos.
-- Keine externe OCR- oder CV-Bibliothek.
-- Die Empfängeradresse wird in localStorage auf dem Gerät gespeichert.
-- Datum und Uhrzeit kommen aus der lokalen Geräteuhr.
-
-Installation:
-Alle Dateien in das Hauptverzeichnis des GitHub-Pages-Repositories hochladen
-und vorhandene Dateien überschreiben. Danach Pages-Deployment abwarten und
-die Website neu laden. Der Service-Worker-Cache wurde auf stempeluhr-1.0 gesetzt.
+Die App verwendet ausschließlich https://www.googleapis.com/auth/gmail.send und kann damit keine E-Mails lesen. Die Client-ID ist öffentlich; Access Tokens werden nur im Arbeitsspeicher gehalten. Nach Ablauf kann Google erneut eine Autorisierung verlangen. Gmail API Versand erfolgt über users.messages.send.
