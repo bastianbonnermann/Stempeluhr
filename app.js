@@ -46,7 +46,10 @@ async function startOCR() {
     const result = await ocrWorker.recognize(canvas);
     const text = result.data.text || '';
     const dateMatch = text.match(/\b(\d{2})[.\-/](\d{2})[.\-/](\d{4})\b/);
-    const timeMatches = [...text.matchAll(/\b([01]?\d|2[0-3])[:.]([0-5]\d)\b/g)];
+    // Remove the recognized date before looking for a time. Otherwise e.g.
+    // "06.11.2026" can be misread as the time "06:11".
+    const textWithoutDate = dateMatch ? text.replace(dateMatch[0], ' ') : text;
+    const timeMatches = [...textWithoutDate.matchAll(/\b([01]?\d|2[0-3])[:.]([0-5]\d)\b/g)];
     let found = false;
     if (dateMatch) {
       const [, dd, mm, yyyy] = dateMatch;

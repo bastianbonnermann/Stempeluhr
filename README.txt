@@ -16,3 +16,9 @@ Noch NICHT enthalten:
 
 Upload:
 Alle Dateien einschließlich icon-192.png und icon-512.png direkt in das Hauptverzeichnis des GitHub-Repositorys hochladen und vorhandene Dateien überschreiben. Danach auf GitHub Pages den neuen Deploy abwarten.
+
+
+Korrektur v0.2.1:
+- Die erkannte Datumszeichenfolge wird vor der Uhrzeitsuche entfernt.
+- Dadurch wird z.B. der Datumsanfang 06.11 nicht mehr fälschlich als 06:11 interpretiert.
+- Service-Worker-Cache wurde erhöht, damit das Update geladen wird.
