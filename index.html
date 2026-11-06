@@ -6,8 +6,8 @@
   <meta name="theme-color" content="#172554">
   <meta name="description" content="Private Stempeluhr zum Erfassen und Versenden der Ausstempelzeit.">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="icon" href="icons/icon-192.png">
-  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="icon" href="icon-192.png">
+  <link rel="apple-touch-icon" href="icon-192.png">
   <link rel="stylesheet" href="style.css">
   <title>Stempeluhr</title>
 </head>
@@ -21,7 +21,7 @@
     <section class="card intro">
       <p class="muted">Ausstempelzeit erfassen</p>
       <h2>Ein Foto. Eine Kontrolle. Eine E-Mail.</h2>
-      <p class="muted small">Das Foto wird nur vorübergehend im Browser verarbeitet und nicht in der Galerie gespeichert.</p>
+      <p class="muted small">Das Foto wird nur vorübergehend auf deinem Handy verarbeitet. Es wird weder gespeichert noch hochgeladen.</p>
     </section>
 
     <section class="card">
@@ -39,20 +39,25 @@
       </div>
       <button id="retake" class="button text-button" hidden>Neues Foto aufnehmen</button>
       <p id="camera-status" class="status" role="status">Kamerazugriff wird erst nach deiner Freigabe aktiviert.</p>
-    </section>
-
-    <section class="card">
-      <h2>2 · Erkannte Zeit kontrollieren</h2>
-      <p class="muted small">In dieser ersten Version trägst du die Werte noch manuell ein. Die automatische Erkennung der KABA-Anzeige folgt im nächsten Entwicklungsschritt.</p>
-      <div class="fields">
-        <label>Datum<input id="date" type="date"></label>
-        <label>Uhrzeit<input id="time" type="time" step="60" placeholder="HH:MM"></label>
+      <div id="ocr-progress" class="progress-wrap" hidden>
+        <div class="progress-track"><div id="progress-bar" class="progress-bar"></div></div>
+        <p id="ocr-status" class="status" role="status">Texterkennung wird vorbereitet …</p>
       </div>
     </section>
 
     <section class="card">
+      <h2>2 · Erkannte Zeit kontrollieren</h2>
+      <p class="muted small">Bitte kontrolliere Datum und Uhrzeit vor dem Versand. Du kannst beide Werte jederzeit korrigieren.</p>
+      <div class="fields">
+        <label>Datum<input id="date" type="date"></label>
+        <label>Uhrzeit<input id="time" type="time" step="60"></label>
+      </div>
+      <p id="recognition-result" class="status" role="status">Noch keine Erkennung durchgeführt.</p>
+    </section>
+
+    <section class="card">
       <h2>3 · E-Mail vorbereiten</h2>
-      <p class="muted small">Der Versand wird in Version 0.2/1.0 über eine sichere Google-Autorisierung eingerichtet. Noch wird keine E-Mail versendet.</p>
+      <p class="muted small">Der automatische Versand über dein Gmail-Konto wird in einem späteren Schritt sicher eingerichtet. In dieser Version wird noch keine E-Mail versendet.</p>
       <label>Arbeits-E-Mail-Adresse
         <input id="recipient" type="email" autocomplete="email" placeholder="name@firma.de">
       </label>
@@ -64,9 +69,11 @@
       <button id="send" class="button primary full" disabled>✉ E-Mail senden</button>
       <p id="send-status" class="status" role="status">E-Mail-Versand ist noch nicht aktiviert.</p>
     </section>
-
-    <footer>Stempeluhr 0.1 · Fotos werden nicht dauerhaft gespeichert.</footer>
+    <footer>Stempeluhr 0.2 · OCR lokal im Browser · Keine dauerhafte Fotospeicherung</footer>
   </main>
+
+  <!-- Tesseract.js wird als OCR-Programm geladen. Das aufgenommene Foto wird nicht an einen Server gesendet. -->
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
