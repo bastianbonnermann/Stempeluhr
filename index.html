@@ -27,11 +27,20 @@
     <p class="small muted">Die E-Mail wird an deine fest hinterlegte Arbeitsadresse gesendet:</p>
     <p class="recipient">bastian.bonnermann@unilux.de</p>
     <div class="mail-preview"><div class="preview-label">VORSCHAU</div><p><b>Betreff:</b> <span id="subject">Ausstempelzeit</span></p><p id="body">Datum: –<br>Uhrzeit: –</p></div>
-    <button id="send" class="send-button" type="button">✉ Jetzt senden</button>
-    <p id="status" class="small status" role="status" aria-live="polite">Bereit.</p>
-    <p class="fine small muted">Der Versand erfolgt über dein Google-Konto. Die Stempeluhr erhält keinen Zugriff auf dein Gmail-Postfach.</p>
+    <button id="send" class="send-button" type="button" disabled>✉ Jetzt senden</button>
+    <p id="status" class="small status" role="status" aria-live="polite">Bitte dieses Smartphone einmalig koppeln.</p>
+    <div id="paired-status" class="paired-status" hidden>✓ Dieses Smartphone ist gekoppelt.</div>
+    <details id="pair-panel" class="pair-panel">
+      <summary>Einmalige Einrichtung dieses Smartphones</summary>
+      <p class="small muted">Gib hier den einmaligen Kopplungscode ein, den du im Apps-Script-Ausführungsprotokoll erzeugst.</p>
+      <label for="pair-code">Kopplungscode</label>
+      <input id="pair-code" type="text" autocomplete="one-time-code" autocapitalize="characters" placeholder="Kopplungscode eingeben">
+      <button id="pair-button" class="pair-button" type="button">Smartphone koppeln</button>
+      <p id="pair-message" class="small status" role="status" aria-live="polite"></p>
+    </details>
+    <p class="fine small muted">Die App-Dateien werden lokal bereitgehalten. Für den E-Mail-Versand ist eine Internetverbindung erforderlich.</p>
   </section>
-  <footer>Stempeluhr 1.4 · Offline startfähig · Privater Google-Mailversand</footer>
+  <footer>Stempeluhr 1.4.1 · Lokal startfähig · Gerätegebundener Mailversand</footer>
 </main>
 <script src="./app.js" defer></script>
 </body>

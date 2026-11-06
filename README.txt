@@ -1,11 +1,17 @@
-STEMPELUHR 1.4 – INSTALLATION
+STEMPELUHR 1.4.1 – LOKALE APP MIT GEKOPPELTEM MAILDIENST
 
-WICHTIG
-Version 1.4 ersetzt die Browser-Verknuepfung durch eine installierbare PWA.
-Die App-Dateien werden nach Installation durch Chrome lokal zwischengespeichert.
-Der E-Mail-Versand benoetigt weiterhin Internet und den Google-Apps-Script-Maildienst.
+ZIEL
+- Die App-Oberfläche, Uhr und Symbole werden auf dem S25 FE durch die installierte PWA lokal bereitgehalten.
+- Nur der E-Mail-Versand benötigt Internet und den Google-Apps-Script-Dienst.
+- Kein Tagesprotokoll.
+- Kein Gmail-OAuth-Dialog beim täglichen Öffnen.
 
-DATEIEN FUER GITHUB PAGES (Repository-Stammverzeichnis)
+SICHERHEIT / GERÄTEKOPPLUNG
+Der Apps-Script-Webdienst muss als Web-App „Ausführen als: Ich“ und „Zugriff: Jeder“ bereitgestellt werden, damit die lokale GitHub-Pages-App den JSONP-Endpunkt ohne interaktive Google-Anmeldung erreichen kann.
+Der Versand ist zusätzlich durch einen einmaligen Kopplungscode und einen zufälligen Geräteschlüssel geschützt. Der Kopplungscode wird NICHT in GitHub abgelegt. Er wird im Apps-Script-Editor erzeugt, einmalig auf dem Smartphone eingegeben und danach serverseitig entwertet. Der Geräteschlüssel bleibt im lokalen Browser-Speicher.
+Wichtig: „Jeder“ bedeutet, dass der technische Endpunkt öffentlich erreichbar ist. Ohne den geheimen Geräteschlüssel ist kein Versand möglich. Der Schlüssel ist ein Gerätezugang, keine Hardware-ID; bei Verlust des Geräts bitte im Apps-Script-Editor geraetEntkoppeln() ausführen und neu koppeln.
+
+DATEIEN FÜR GITHUB PAGES (Repository-Stammverzeichnis)
 index.html
 app.js
 style.css
@@ -14,21 +20,20 @@ sw.js
 icon-192.png
 icon-512.png
 
-DATEI FUER GOOGLE APPS SCRIPT
+DATEI FÜR GOOGLE APPS SCRIPT
 Code.gs
 
-INSTALLATIONSREIHENFOLGE
-1. In Google Apps Script die bestehende Code.gs durch die mitgelieferte Code.gs ersetzen und speichern.
-2. Bereitstellen > Bereitstellungen verwalten > Bearbeiten (Stiftsymbol) > Version: Neue Version > Bereitstellen.
-   Die Zugriffsberechtigung bleibt auf „Nur ich selbst“, Ausfuehren als bleibt dein Konto.
-   Die Web-App-URL bleibt normalerweise dieselbe. Falls Google eine neue URL anzeigt, muss sie in app.js in API_URL eingetragen werden.
-3. Die sieben PWA-Dateien (ohne Code.gs und README.txt) in das Stammverzeichnis des GitHub-Pages-Repositories hochladen und gleichnamige Dateien ersetzen.
-4. Die GitHub-Pages-Adresse auf dem S25 FE in Chrome oeffnen. Chrome-Menue > Installieren.
-5. Die alte Stempeluhr-Verknuepfung erst entfernen, wenn Version 1.4 erfolgreich installiert und getestet ist.
+REIHENFOLGE
+1. Code.gs im Apps-Script-Projekt ersetzen und speichern.
+2. Im Editor erstelleKopplungscode() ausführen. Den Code aus dem Ausführungsprotokoll sicher notieren.
+3. Bestehende Web-App-Bereitstellung bearbeiten, neue Version auswählen. „Ausführen als: Ich“ und „Zugriff: Jeder“ einstellen. Erst nach bewusster Prüfung bereitstellen.
+4. Die Web-App-URL in app.js bei API_URL eintragen, falls Google eine andere URL zeigt.
+5. Die sieben App-Dateien ins GitHub-Pages-Stammverzeichnis hochladen und gleichnamige Dateien ersetzen.
+6. Auf dem Smartphone GitHub-Pages-Seite öffnen, PWA installieren und einmalig mit dem Kopplungscode verbinden.
 
-HINWEISE
-- Es gibt kein lokales Tagesprotokoll mehr.
-- Die App speichert keine Gmail-Anmeldedaten und fordert keine Gmail-OAuth-Verbindung an.
-- Die serverseitige Apps-Script-Funktion begrenzt den Versand auf drei E-Mails pro Tag, mindestens 60 Sekunden Abstand und blockiert unmittelbar doppelte Datum/Uhrzeit-Kombinationen.
-- Bei einer Versand-Zeitueberschreitung zuerst das Firmenpostfach kontrollieren, bevor erneut gesendet wird.
-- Die App-Oberflaeche und Symbole werden lokal gecacht; der Mailversand ist online-only.
+VERSANDREGELN
+- Empfänger ist fest im Code: bastian.bonnermann@unilux.de
+- Maximal drei E-Mails pro Tag
+- Mindestens 60 Sekunden Abstand
+- Unmittelbar gleiche Datum/Uhrzeit-Kombination wird abgewiesen
+- Bei Zeitüberschreitung zuerst das Firmenpostfach prüfen, bevor erneut gesendet wird

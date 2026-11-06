@@ -1,4 +1,4 @@
-const CACHE = 'stempeluhr-1.4';
+const CACHE = 'stempeluhr-1.4.1';
 const FILES = ['./', './index.html', './style.css', './app.js', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(FILES)).then(() => self.skipWaiting()));
