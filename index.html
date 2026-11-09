@@ -3,45 +3,116 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#243b70">
-  <meta name="description" content="Persönliche Stempeluhr zum Erfassen und Versenden der Ausstempelzeit.">
-  <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="icon" href="./icon-192.png" type="image/png">
-  <link rel="apple-touch-icon" href="./icon-192.png">
-  <link rel="stylesheet" href="./style.css">
-  <title>Stempeluhr</title>
+  <meta name="theme-color" content="#123b70">
+  <meta name="description" content="Lokale Zeiterfassung und Abwesenheitsverwaltung">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="style.css">
+  <title>Stempeluhr 3.0</title>
 </head>
 <body>
-<main class="app">
-  <header class="brand"><img class="brand-icon" src="./icon-192.png" alt=""><div><div class="eyebrow">PERSÖNLICHES ZEITPROTOKOLL</div><h1>Stempeluhr</h1></div></header>
-  <section class="intro card"><p class="muted">Ausstempelzeit erfassen</p><h2>Uhrzeit prüfen, korrigieren und direkt senden.</h2><p class="small muted">Datum und Uhrzeit kommen automatisch von deinem Smartphone.</p></section>
-  <section class="card">
-    <div class="section-kicker">1 · DEINE AUSSTEMPELZEIT</div>
-    <p id="current-date" class="date-line">–</p><h2 id="live-time" class="time-display">--:--</h2><p class="small muted center">Aktuelle Zeit deines Smartphones</p>
-    <div class="divider"></div><h3>Uhrzeit korrigieren</h3>
-    <div class="adjust-row"><button type="button" data-delta="-5">−5</button><button type="button" data-delta="-1">−1</button><div id="selected-time" class="adjusted-time">--:--</div><button type="button" data-delta="1">+1</button><button type="button" data-delta="5">+5</button></div>
-    <p class="small muted hint">Die Korrektur verändert nur die zu versendende Zeit.</p><button id="reset" class="text-button" type="button">Auf aktuelle Uhrzeit zurücksetzen</button>
+<header>
+  <div class="brand"><div class="logo">S</div><div><h1>Stempeluhr</h1><small>Version 3.0 · lokal auf diesem Gerät</small></div></div>
+  <div id="todayLabel" class="today"></div>
+</header>
+<main>
+  <nav class="tabs">
+    <button class="tab active" data-tab="zeit">Zeiterfassung</button>
+    <button class="tab" data-tab="abwesenheit">Abwesenheit</button>
+    <button class="tab" data-tab="liste">Buchungen & Export</button>
+  </nav>
+
+  <section id="zeit" class="panel active">
+    <h2>Arbeitszeit erfassen</h2>
+    <div class="clock-card">
+      <div class="muted">Erfasste Uhrzeit</div>
+      <div id="clock" class="clock">--:--</div>
+      <div id="date" class="date"></div>
+      <div class="adjust">
+        <button class="secondary" data-adjust="-5">−5 Min.</button>
+        <button class="secondary" data-adjust="-1">−1 Min.</button>
+        <button class="secondary" data-adjust="1">+1 Min.</button>
+        <button class="secondary" data-adjust="5">+5 Min.</button>
+      </div>
+      <button id="resetTime" class="text-button">Auf aktuelle Uhrzeit zurücksetzen</button>
+    </div>
+    <div class="action-row">
+      <button id="comeBtn" class="action come">KOMMEN</button>
+      <button id="goBtn" class="action go">GEHEN</button>
+    </div>
+    <p class="hint">Die Uhrzeit wird beim Öffnen angezeigt. Mit den Minuten-Tasten kannst du sie korrigieren. Jede Buchung wird lokal gespeichert.</p>
+    <div id="timeMessage" class="message" aria-live="polite"></div>
   </section>
-  <section class="card">
-    <div class="section-kicker">2 · E-MAIL-VERSAND</div>
-    <p class="small muted">Die E-Mail wird an deine fest hinterlegte Arbeitsadresse gesendet:</p>
-    <p class="recipient">bastian.bonnermann@unilux.de</p>
-    <div class="mail-preview"><div class="preview-label">VORSCHAU</div><p><b>Betreff:</b> <span id="subject">Ausstempelzeit</span></p><p id="body">Datum: –<br>Uhrzeit: –</p></div>
-    <button id="send" class="send-button" type="button" disabled>✉ Jetzt senden</button>
-    <p id="status" class="small status" role="status" aria-live="polite">Bitte dieses Smartphone einmalig koppeln.</p>
-    <div id="paired-status" class="paired-status" hidden>✓ Dieses Smartphone ist gekoppelt.</div>
-    <details id="pair-panel" class="pair-panel">
-      <summary>Einmalige Einrichtung dieses Smartphones</summary>
-      <p class="small muted">Gib hier den einmaligen Kopplungscode ein, den du im Apps-Script-Ausführungsprotokoll erzeugst.</p>
-      <label for="pair-code">Kopplungscode</label>
-      <input id="pair-code" type="text" autocomplete="one-time-code" autocapitalize="characters" placeholder="Kopplungscode eingeben">
-      <button id="pair-button" class="pair-button" type="button">Smartphone koppeln</button>
-      <p id="pair-message" class="small status" role="status" aria-live="polite"></p>
-    </details>
-    <p class="fine small muted">Die App-Dateien werden lokal bereitgehalten. Für den E-Mail-Versand ist eine Internetverbindung erforderlich.</p>
+
+  <section id="abwesenheit" class="panel">
+    <h2>Abwesenheit oder Sondertag eintragen</h2>
+    <form id="absenceForm" class="form-card">
+      <label>Art der Buchung
+        <select id="absenceType" required>
+          <option value="U">Urlaub (U)</option>
+          <option value="B">Betriebsurlaub (B)</option>
+          <option value="D">Dienstreise (D)</option>
+          <option value="F">Feiertag (F)</option>
+          <option value="K">Krankheit (K)</option>
+          <option value="Ü">Überstundenabbau (Ü)</option>
+          <option value="HO">Homeoffice (A + Bemerkung)</option>
+        </select>
+      </label>
+      <div class="grid2">
+        <label>Von<input id="absenceFrom" type="date" required></label>
+        <label>Bis<input id="absenceTo" type="date" required></label>
+      </div>
+      <label>Bemerkung (optional)<input id="absenceNote" type="text" maxlength="100" placeholder="z. B. Arzttermin oder Dienstreise"></label>
+      <p class="hint">Bei Zeiträumen werden Samstage und Sonntage automatisch ausgelassen. Einzelne Feiertage kannst du unabhängig davon eintragen.</p>
+      <button class="primary" type="submit">Eintrag speichern</button>
+    </form>
+    <div id="absenceMessage" class="message" aria-live="polite"></div>
   </section>
-  <footer>Stempeluhr 1.4.1 · Lokal startfähig · Gerätegebundener Mailversand</footer>
+
+  <section id="liste" class="panel">
+    <h2>Gespeicherte Buchungen</h2>
+    <div class="toolbar">
+      <label class="filter">Jahr
+        <select id="yearFilter"></select>
+      </label>
+      <button id="exportBtn" class="primary">CSV exportieren</button>
+    </div>
+    <div id="exportConfirm" class="export-confirm hidden">
+      <strong>Export erstellt.</strong>
+      <p id="exportText"></p>
+      <p>Wenn du die CSV-Datei sicher gespeichert hast, kannst du genau diese exportierten Buchungen jetzt aus der App löschen.</p>
+      <div class="toolbar">
+        <button id="deleteExported" class="danger">Exportierte Buchungen löschen</button>
+        <button id="keepExported" class="secondary">Buchungen behalten</button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Datum</th><th>Uhrzeit / Zeitraum</th><th>Art</th><th>Bemerkung</th><th>Aktion</th></tr></thead>
+        <tbody id="entriesBody"></tbody>
+      </table>
+    </div>
+    <div class="bottom-actions">
+      <span id="entryCount" class="muted"></span>
+      <button id="deleteAll" class="text-button danger-text">Alle Buchungen löschen</button>
+    </div>
+    <div id="listMessage" class="message" aria-live="polite"></div>
+  </section>
+  <footer>Alle Daten bleiben in diesem Browser auf diesem Gerät. Regelmäßig exportieren und die CSV-Datei sichern.</footer>
 </main>
-<script src="./app.js" defer></script>
+
+<dialog id="editDialog">
+  <form id="editForm" method="dialog">
+    <h2>Buchung bearbeiten</h2>
+    <input type="hidden" id="editId">
+    <label>Datum<input id="editDate" type="date" required></label>
+    <div id="editTimeWrap"><label>Uhrzeit<input id="editTime" type="time"></label></div>
+    <label>Art<select id="editType"></select></label>
+    <label>Bemerkung<input id="editNote" type="text" maxlength="100"></label>
+    <div class="dialog-actions"><button type="button" id="cancelEdit" class="secondary">Abbrechen</button><button type="submit" class="primary">Speichern</button></div>
+  </form>
+</dialog>
+<script src="app.js"></script>
 </body>
 </html>
